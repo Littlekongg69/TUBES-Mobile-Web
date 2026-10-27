@@ -13,6 +13,7 @@
 ehthumbs.db
 Thumbs.db
 
+
 # JetBrains / Android Studio
 .idea/
 *.iml
