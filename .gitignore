@@ -1,0 +1,84 @@
+# =====================================================================
+# SQLQuest — Root .gitignore (Mobile & Web)
+# =====================================================================
+
+# ---------------------------------------------------------------------
+# Operating System & IDE Files
+# ---------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# JetBrains / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# ---------------------------------------------------------------------
+# Flutter & Dart (Mobile)
+# ---------------------------------------------------------------------
+**/build/
+**/.dart_tool/
+**/.pub/
+**/.pub-cache/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/doc/api/
+**/coverage/
+
+# Flutter build artifacts & symbols
+app.*.symbols
+app.*.map.json
+
+# iOS / macOS build files
+**/ios/Flutter/.last_build_id
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/macos/Pods/
+**/macos/.symlinks/
+**/macos/Flutter/ephemeral
+
+# Android build files & local configurations
+**/android/local.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+**/.gradle/
+
+# ---------------------------------------------------------------------
+# Secrets, Keystores, & Environment Variables (CRITICAL)
+# ---------------------------------------------------------------------
+*.env
+*.env.*
+!.env.example
+key.properties
+*.jks
+*.keystore
+google-services.json
+GoogleService-Info.plist
+*.pem
+*.key
+
+# ---------------------------------------------------------------------
+# Node.js / React (Web & Backend)
+# ---------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+dist/
+.next/
+.cache/
