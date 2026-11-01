@@ -1,229 +1,229 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_dimensions.dart';
-import '../../../shared/widgets/primary_action_button.dart';
+import '../../../core/theme/design_tokens.dart';
+import '../../../shared/models/app_state_provider.dart';
+import '../../../shared/widgets/sqlquest_widgets.dart';
 
-class LoginScreen extends StatefulWidget {
+/// Bagian 16 & AC-02, AC-03:
+/// Login dengan email/password, Google OAuth, rate limit 5 gagal (429), dan cek ACCOUNT_SUSPENDED.
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'kevin@mail.com');
-  final _passwordController = TextEditingController(text: 'Passw0rd!');
-  bool _obscurePassword = true;
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailCtrl = TextEditingController(text: 'rani@mail.com');
+  final _passCtrl = TextEditingController(text: 'Passw0rd!');
+  String? _errorMsg;
+  bool _obscure = true;
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _emailCtrl.dispose();
+    _passCtrl.dispose();
     super.dispose();
   }
 
-  void _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(milliseconds: 600));
-      if (mounted) {
-        setState(() => _isLoading = false);
-        context.go('/home');
-      }
+  Future<void> _submitLogin() async {
+    setState(() {
+      _errorMsg = null;
+      _isLoading = true;
+    });
+
+    final err = await ref.read(appStateProvider.notifier).login(
+          email: _emailCtrl.text,
+          password: _passCtrl.text,
+        );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (err != null) {
+      setState(() => _errorMsg = err);
+      return;
+    }
+
+    final user = ref.read(appStateProvider).user;
+    if (!user.hasCompletedOnboarding) {
+      context.go('/onboarding');
+    } else {
+      context.go('/home');
     }
   }
 
-  void _handleGoogleLogin() async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 700));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      context.go('/onboarding');
-    }
+  Future<void> _handleGoogleSignIn() async {
+    await ref.read(appStateProvider.notifier).loginWithGoogle();
+    if (!mounted) return;
+    context.go('/home');
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppDimensions.xl),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                Center(
-                  child: Container(
-                    width: 64,
-                    height: 64,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
-                    ),
-                    child: const Center(
-                      child: Text('⚡', style: TextStyle(fontSize: 32)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Text(
-                    'Selamat Datang Kembali',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Center(
-                  child: Text(
-                    'Masuk untuk melanjutkan petualangan SQL kamu',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 36),
-                Text(
-                  'Email',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    hintText: 'nama@email.com',
-                    prefixIcon: Icon(Icons.email_outlined, size: 20),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return 'Email wajib diisi';
-                    if (!value.contains('@')) return 'Format email tidak valid';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Kata Sandi',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    hintText: '••••••••',
-                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        size: 20,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 440),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          gradient: DesignTokens.heroCardGradient,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.storage_rounded,
+                          color: Colors.white,
+                        ),
                       ),
-                      onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
-                      },
-                    ),
+                      const SizedBox(width: 12),
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'SQLQuest',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          Text(
+                            'Masuk untuk melanjutkan streak belajarmu',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  validator: (value) {
-                    if (value == null || value.length < 8) {
-                      return 'Kata sandi minimal 8 karakter';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () => context.push('/forgot-password'),
-                    style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                    child: const Text('Lupa Kata Sandi?'),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: PrimaryActionButton(
-                    label: 'Masuk ke SQLQuest',
-                    onPressed: _isLoading ? null : _handleLogin,
-                    isLoading: _isLoading,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                  const SizedBox(height: 28),
+                  if (_errorMsg != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: DesignTokens.errorLight.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: DesignTokens.errorLight),
+                      ),
                       child: Text(
-                        'atau',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+                        _errorMsg!,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: DesignTokens.errorLight,
                         ),
                       ),
                     ),
-                    Expanded(child: Divider(color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder)),
+                    const SizedBox(height: 16),
                   ],
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _handleGoogleLogin,
-                    icon: const Text('🌐', style: TextStyle(fontSize: 18)),
-                    label: const Text('Lanjutkan dengan Google'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(
-                        color: isDark ? AppColors.darkCardBorder : AppColors.lightCardBorder,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppDimensions.radiusMd),
+                  const Text(
+                    'Email',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      hintText: 'rani@mail.com',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Password',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: _passCtrl,
+                    obscureText: _obscure,
+                    decoration: InputDecoration(
+                      hintText: 'Minimal 8 karakter',
+                      prefixIcon: const Icon(Icons.lock_outline_rounded),
+                      suffixIcon: IconButton(
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                        icon: Icon(
+                          _obscure
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Belum punya akun?',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.lightTextSecondary,
-                      ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => context.push('/forgot-password'),
+                      child: const Text('Lupa Password?'),
                     ),
-                    TextButton(
-                      onPressed: () => context.push('/register'),
-                      child: const Text(
-                        'Daftar Sekarang',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  PrimaryActionButton(
+                    label: 'Masuk',
+                    isLoading: _isLoading,
+                    onPressed: _submitLogin,
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
+                      onPressed: _handleGoogleSignIn,
+                      icon: const Icon(Icons.g_mobiledata_rounded, size: 28),
+                      label: const Text('Lanjutkan dengan Google'),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 18),
+                  AppCard(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Akun Uji Demo (Bagian 37):',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          '• User Aktif: rani@mail.com / Passw0rd!\n• Uji Suspended (AC-02): suspended@mail.com',
+                          style: TextStyle(fontSize: 11.5),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Belum punya akun?'),
+                      TextButton(
+                        onPressed: () => context.push('/register'),
+                        child: const Text('Daftar Sekarang'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -231,3 +231,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
