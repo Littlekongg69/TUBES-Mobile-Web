@@ -7,18 +7,6 @@ import '../../features/auth/presentation/onboarding_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/splash_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
-import '../../features/leaderboard/presentation/leaderboard_screen.dart';
-import '../../features/learning/presentation/learning_path_screen.dart';
-import '../../features/learning/presentation/lesson_screen.dart';
-import '../../features/learning/presentation/quiz_screen.dart';
-import '../../features/mission/presentation/daily_mission_screen.dart';
-import '../../features/notification/presentation/notification_screen.dart';
-import '../../features/profile/presentation/achievement_screen.dart';
-import '../../features/profile/presentation/edit_profile_screen.dart';
-import '../../features/profile/presentation/profile_screen.dart';
-import '../../features/profile/presentation/settings_screen.dart';
-import '../../features/sql_game/presentation/sql_challenge_screen.dart';
-import '../../features/sql_game/presentation/sql_game_screen.dart';
 import '../../shared/models/app_state_provider.dart';
 import '../../shared/widgets/sqlquest_widgets.dart';
 
@@ -130,75 +118,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/learn',
-                builder: (context, state) => const LearningPathScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/game',
-                builder: (context, state) => const SqlGameScreen(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfileScreen(),
-              ),
-            ],
-          ),
         ],
-      ),
-
-      // Layar turunan di luar shell tab
-      GoRoute(
-        path: '/lessons/:id',
-        builder: (context, state) => LessonScreen(
-          lessonId: state.pathParameters['id'] ?? 'les-1',
-        ),
-      ),
-      GoRoute(
-        path: '/lessons/:id/quiz',
-        builder: (context, state) => QuizScreen(
-          lessonId: state.pathParameters['id'] ?? 'les-1',
-        ),
-      ),
-      GoRoute(
-        path: '/game/challenges/:id',
-        builder: (context, state) => SqlChallengeScreen(
-          challengeId: state.pathParameters['id'] ?? 'chal-1',
-        ),
-      ),
-      GoRoute(
-        path: '/missions',
-        builder: (context, state) => const DailyMissionScreen(),
-      ),
-      GoRoute(
-        path: '/leaderboard',
-        builder: (context, state) => const LeaderboardScreen(),
-      ),
-      GoRoute(
-        path: '/achievements',
-        builder: (context, state) => const AchievementScreen(),
-      ),
-      GoRoute(
-        path: '/notifications',
-        builder: (context, state) => const NotificationScreen(),
-      ),
-      GoRoute(
-        path: '/profile/edit',
-        builder: (context, state) => const EditProfileScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
       ),
     ],
   );
